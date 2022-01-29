@@ -1,16 +1,51 @@
 # beyond_setstate
 
-A new Flutter project.
+### Joke Model
+```dart
+class Joke {
+  final String setup;
+  final String delivery;
 
-## Getting Started
+  const Joke({
+    required this.setup,
+    required this.delivery,
+  });
 
-This project is a starting point for a Flutter application.
+  factory Joke.fromAPI(Map<String, dynamic> json) {
+    return Joke(
+      setup: json['setup'],
+      delivery: json['delivery'],
+    );
+  }
+}
 
-A few resources to get you started if this is your first Flutter project:
+```
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+Future Provider for Joke
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+```dart
+final jokeProvider = FutureProvider<Joke>((ref) async {
+  var url = Uri.parse('https://v2.jokeapi.dev/joke/Any');
+  var response = await http.get(url);
+  // ignore: avoid_print
+  print('Response status: ${response.statusCode}');
+  var joke = Joke.fromAPI(jsonDecode(response.body));
+  return joke;
+});
+```
+
+Using it in app
+`final joke = ref.watch(jokeProvider);`
+
+```dart
+ joke.when(
+              data: (joke) => Column(
+                children: [
+                  Text(joke.setup),
+                  Text(joke.delivery),
+                ],
+              ),
+              error: (error, stack) => const Text('Oops'),
+              loading: () => const CircularProgressIndicator(),
+            )
+```
