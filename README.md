@@ -185,3 +185,97 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 ```
+
+### Final
+
+```dart
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:state_sample/bloc/counter/counter_events.dart';
+import 'package:state_sample/bloc/counter/counter_state.dart';
+
+import 'bloc/counter/counter_bloc.dart';
+
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({Key? key}) : super(key: key);
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    _controller = TextEditingController();
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (context) => CounterBloc(0),
+      child: Scaffold(
+        body: BlocConsumer<CounterBloc, CounterState>(
+          listener: (context, state) {
+            _controller.clear();
+          },
+          builder: (context, state) {
+            final invalidValue =
+                (state is CounterStateInvalidNumber) ? state.invalidValue : '';
+            return Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('Value: ${state.value}'),
+                Visibility(
+                  child: Text('Invalid input: $invalidValue',
+                      style: TextStyle(fontSize: 20)),
+                  visible: state is CounterStateInvalidNumber,
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: TextField(
+                    controller: _controller,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter a value',
+                    ),
+                    keyboardType: TextInputType.number,
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        context
+                            .read<CounterBloc>()
+                            .add(DecrementEvent(_controller.text));
+                      },
+                      child: const Text('-', style: TextStyle(fontSize: 20)),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        context
+                            .read<CounterBloc>()
+                            .add(IncrementEvent(_controller.text));
+                      },
+                      child: const Text('+', style: TextStyle(fontSize: 20)),
+                    ),
+                  ],
+                )
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+```
